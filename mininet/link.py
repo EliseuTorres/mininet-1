@@ -161,9 +161,11 @@ class Intf( object ):
     def delete( self ):
         "Delete interface"
         self.cmd( 'ip link del ' + self.name )
+	self.cmd( 'ovs-vsctl del-port ' + self.name.split('-')[0] + ' ' + self.name) ###
         if self.node.inNamespace:
             # Link may have been dumped into root NS
             quietRun( 'ip link del ' + self.name )
+	    quietRun( 'ovs-vsctl del-port ' + self.name.split('-')[0] + ' ' + self.name) ###
 
     def __repr__( self ):
         return '<%s %s>' % ( self.__class__.__name__, self.name )

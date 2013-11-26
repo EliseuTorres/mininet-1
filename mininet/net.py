@@ -738,6 +738,66 @@ class Mininet( object ):
         fixLimits()
         cls.inited = True
 
+# By Teja ###
+    def addFirewall( self, newId, switch, port, controller ):
+	'''Adding a new switch to the given switch'''
+        fwName = "fw" + str(newId)
+        fw = self.addSwitch( fwName )
+        self.addLink( switch, fw )
+        switch.attach( str(switch) + "-eth" + str(port) )
+        fw.attach( str( fw ) + "-eth" + str(1))
+        fw.start( [controller] )
+        print fw
+
+#By Murali ###
+    def delLink(self, src, dst, cls=None, **params ):
+        """Delete the link completely i.e. delete the interfaces """
+        if type( src ) is str:
+       		 src = self.nameToNode[ src ]
+        if type( dst ) is str:
+                 dst = self.nameToNode[ dst ]
+        connections = src.connectionsTo( dst )
+        if len( connections ) == 0:
+                 error( 'src and dst not connected: %s %s\n' % ( src, dst) )
+        i = 0
+        for srcIntf, dstIntf in connections:
+                 result = srcIntf.delete()
+                 info(src.ports[srcIntf])
+                 del src.intfs[src.ports[srcIntf]]###
+                 del src.ports[srcIntf]###
+                 if result:
+                     error( 'link src status change failed: %s\n' % result )
+                 result = dstIntf.delete()
+                 del dst.intfs[dst.ports[dstIntf]]###
+                 del dst.ports[dstIntf]###
+                 if result:
+                     error( 'link dst status change failed: %s\n' % result )
+                 del connections[i]
+                 i = i + 1
+                 info(connections);
+                 info('\n')
+
+###
+    def delFirewall(self, fw):
+	"""Delete all the interfaces of switch and then delete it """
+	node = fw
+	for intf in node.intfList():
+#            output( ' %s:' % intf )
+            if intf.link:
+		if str(intf.link.intf1).find(str(fw))>=0 :
+			sw = str(intf.link.intf2)[:str(intf.link.intf2).find('-')]
+		else:
+			sw = str(intf.link.intf1)[:str(intf.link.intf1).find('-')]
+		self.delLink(fw,sw)
+		output('\n')
+		output(sw)
+            else:
+                output( ' ' )
+
+	fw.cmd('ovs-vsctl del-br '+str(fw))
+	del self.nameToNode[str(fw)]
+        self.switches.remove(fw)
+
 
 class MininetWithControlNet( Mininet ):
 
